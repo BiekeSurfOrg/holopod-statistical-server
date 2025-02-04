@@ -129,7 +129,7 @@ app.post('/projects/:project', async function (req, res) {
     for (let index = 0; index < pages.length; index++) {
       const element = pages[index];
       let pageId
-      await schema.getTable('pages').insert('projectId', 'content').values(projectId, element).execute().then(result => {
+      await schema.getTable('pages').insert('projectId', 'pageName').values(projectId, element).execute().then(result => {
         pageId = result.getAutoIncrementValue();
       });
       await schema.getTable('results').insert('pageId', 'pageVisits').values(pageId, 0).execute();
@@ -141,15 +141,20 @@ app.post('/projects/:project', async function (req, res) {
   await session.close();
 });
 
-app.post('/results/:project/:pageId', async function (req, res) {
+app.post('/results/:page', async function (req, res) {
   const session = await initSesion();
   const schema = session.getSchema(SCHEMA);
   const table = schema.getTable('results');
 
+  const pageid = await schema.getTable('pages').select('pageId')
+    .where('pageName = :pageName')
+    .bind('pageName', req.params.page)
+    .execute();
+
   // Query the result based on the pageId
   const result = await table.select('resultId', 'pageVisits')
     .where('pageId = :pageId')
-    .bind('pageId', req.params.pageId)
+    .bind('pageId', pageid.fetchOne()[0])
     .execute();
 
   const resultData = result.fetchOne();
