@@ -19,11 +19,10 @@ console.log("app running");
     password: "cFa59bggB5XdILEQVYjZMeVP2IahJuON",
   });
 
-
   // Create a schema (database) if not exists
   const schemaExists = await session.getSchema(SCHEMA).existsInDatabase();
+
   if (!schemaExists) {
-    console.log(`Creating schema "${SCHEMA}"`);
     await session.createSchema(SCHEMA);
   }
 
@@ -81,18 +80,11 @@ console.log("app running");
         + 'ENGINE = InnoDB;')
       .execute();
   }
-
-  // Close the connection to MySQL
-  await session.close();
-
 })().catch(error => {
   console.error('');
   console.error('🐞 An error occurred!');
   console.error(error);
   process.exit(1);
 });
-
-
-
 
 app.listen(process.env.PORT || 8080);
