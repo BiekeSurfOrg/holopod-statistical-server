@@ -68,6 +68,25 @@ const initSesion = async () => {
       .execute();
   }
 
+  const daysTableExists = await session
+  .getSchema(SCHEMA)
+  .getTable('days')
+  .existsInDatabase();
+if (!pagesTableExists) {
+  await session
+    .sql('CREATE TABLE `holopod-statistics`.`days` '
+      + '('
+      + '`dayId` INT UNSIGNED NOT NULL AUTO_INCREMENT,'
+      + '`pageId` INT UNSIGNED NOT NULL,'
+      + '`day` TEXT NOT NULL,'
+      + 'PRIMARY KEY (dayId),'
+      + 'FOREIGN KEY (pageId) REFERENCES projects(pageId)'
+      + ') '
+      + 'ENGINE = InnoDB;')
+    .execute();
+}
+
+
   // Create table "results" if not exists
   const resultsTableExists = await session
     .getSchema(SCHEMA)
