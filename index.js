@@ -145,36 +145,22 @@ app.post('/results/:page', async function (req, res) {
   const session = await initSesion();
   const schema = session.getSchema(SCHEMA);
   const table = schema.getTable('results');
-
+  const date = new Date().toLocaleDateString('en-CA');
   const page = await schema.getTable('pages').select('pageId')
     .where('pageName = :pageName')
     .bind('pageName', req.params.page)
     .execute();
   const pageid = page.fetchOne()[0];
 
-  const currentPageVisits = ((await table.select('pageVisits').where('pageId = :pageId').bind('pageId', pageid).execute()).fetchOne());
+  const currentPageVisits = ((await table.select(['pageVisits', 'date']).where('pageId = :pageId && date = :date').bind('pageId', pageid).bind('date', date).execute()).fetchOne());
 
   if (currentPageVisits) {
     const pageVisits = currentPageVisits[0] + 1;
-    await table.update().set('pageVisits', pageVisits).where('pageId = :pageId').bind('pageId', pageid).execute().then(result => res.send(result));
+    await table.update().set('pageVisits', pageVisits).where('pageId = :pageId && date = :date').bind('pageId', pageid).bind('date', date).execute().then(result => res.send(result));
 
   } else {
-    await table.insert('pageId', 'date', 'pageVisits').values(pageid, new Date(), 1).execute().then(result => res.send(result));
+    await table.insert('pageId', 'date', 'pageVisits').values(pageid, date, 1).execute().then(result => res.send(result));
   }
-
-
-  // // Query the result based on the pageId
-  // const result = await table.select('resultId', 'pageVisits')
-  //   .where('pageId = :pageId')
-  //   .bind('pageId', pageid.fetchOne()[0])
-  //   .execute();
-
-  // const resultData = result.fetchOne();
-  // if (resultData) {
-  //   res.json({ resultId: resultData[0], pageVisits: resultData[1] });
-  // } else {
-  //   res.status(404).send('Result not found');
-  // }
 
   await session.close();
 
