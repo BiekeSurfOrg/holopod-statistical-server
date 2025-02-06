@@ -108,7 +108,9 @@ const initSesion = async () => {
 });
 
 app.post('/projects/:project', async function (req, res) {
-  const pages = JSON.parse(req.body.pages.replace(/'/g, '"'));
+  console.log(req.body.pages);
+
+  const pages = req.body.pages;
   const session = await initSesion();
   const schema = session.getSchema(SCHEMA);
   const table = schema.getTable('projects');
